@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     fetchUsers();
     fetchAds();
 
-    socketRef.current = io("http://localhost:5000");
+    socketRef.current = io("https://my-backend-1-c9a1.onrender.com");
     const socket = socketRef.current;
 
     socket.on("usersUpdated", fetchUsers);
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
               ) : (
                 ads.map((ad, i) => (
                   <div key={ad._id} className="media-item" style={{ animationDelay: `${i * 0.06}s` }}>
-                    <img src={`http://localhost:5000${ad.imageUrl}`} alt="Promotion" />
+                    <img src={`https://my-backend-1-c9a1.onrender.com${ad.imageUrl}`} alt="Promotion" />
                     <button className="delete-media-btn" onClick={() => removeAd(ad._id)}>
                       Remove
                     </button>

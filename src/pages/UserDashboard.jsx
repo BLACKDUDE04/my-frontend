@@ -203,7 +203,7 @@ export default function UserDashboard() {
   useEffect(() => {
     fetchShop(); fetchAds(); fetchRecentBills(); fetchInventory(); fetchCurrentUser(); fetchExpenses();
     if (window.innerWidth <= 900) setSidebarOpen(false);
-    socketRef.current = io("http://localhost:5000");
+    socketRef.current = io("https://multibill.netlify.app");
     const s = socketRef.current;
     s.on("adsUpdated", fetchAds); s.on("usersUpdated", fetchCurrentUser);
     s.on("inventoryUpdated", fetchInventory); s.on("billsUpdated", fetchRecentBills);
@@ -218,7 +218,7 @@ export default function UserDashboard() {
   useEffect(() => {
     const fn = () => {
       const token = localStorage.getItem("token");
-      if (token) navigator.sendBeacon("http://localhost:5000/api/auth/logout",
+      if (token) navigator.sendBeacon("https://multibill.netlify.app/api/auth/logout",
         new Blob([JSON.stringify({ token })], { type: "application/json" }));
     };
     window.addEventListener("beforeunload", fn);
@@ -450,7 +450,7 @@ export default function UserDashboard() {
               <div className="ads-strip">
                 {ads.map(a => (
                   <div key={a._id} className="ad-tile">
-                    <img src={`http://localhost:5000${a.imageUrl}`} alt="Promotion" />
+                    <img src={`https://my-backend-1-c9a1.onrender.com${a.imageUrl}`} alt="Promotion" />
                   </div>
                 ))}
               </div>

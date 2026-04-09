@@ -40,7 +40,7 @@ export default function Advertisement() {
       >
         <div className="ad-content">
           <img 
-            src={`http://localhost:5000${currentAd.imageUrl}`} 
+            src={`${api.defaults.baseURL}/${currentAd.imageUrl}`} 
             alt={currentAd.title} 
             className="ad-banner"
           />
