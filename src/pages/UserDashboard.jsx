@@ -465,7 +465,7 @@ export default function UserDashboard() {
               <div className="bills-fixed-top">
                 <div className="section-header">
                   <div>
-                    <h2 className="section-title">Transactions</h2>
+                    <h2 className="section-title">Transaction</h2>
                     <p className="section-sub">{filteredBills.length} records</p>
                   </div>
                   <div className="section-actions">
