@@ -142,7 +142,7 @@ export default function UserDashboard() {
   const [type, setType] = useState("Bill");
   const [freight, setFreight] = useState(0);
   const [payment, setPayment] = useState(0);
-  const [bill, setBill] = useState({});
+  const [bill] = useState(0);
   const billRef = useRef();
 
   const [inventory, setInventory] = useState([]);
