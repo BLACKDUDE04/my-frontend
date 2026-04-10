@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import api from "../api";
-import Navbar from "../components/Navbar";
 import { io } from "socket.io-client";
+import Navbar from "../components/Navbar";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
@@ -13,7 +13,6 @@ export default function AdminDashboard() {
 
   const socketRef = useRef(null);
 
-  // Professional Stats
   const stats = useMemo(() => ({
     totalNodes: users.length,
     activeLicenses: users.filter(u => u.active).length,
@@ -23,7 +22,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const res = await api.get("/admin/users");
-      setUsers(res.data);
+      setUsers(res.data || []);
     } catch (err) {
       console.error("Failed to fetch users:", err);
     } finally {
@@ -34,7 +33,7 @@ export default function AdminDashboard() {
   const fetchAds = async () => {
     try {
       const res = await api.get("/ads");
-      setAds(res.data);
+      setAds(res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -57,7 +56,6 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  // Actions
   const handleUpdateScreens = async (userId, count) => {
     if (!count) return;
     try {
@@ -143,43 +141,41 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-shell">
       <Navbar title="Enterprise Control Center" subtitle="System Administration" />
 
-      <div className="dashboard-container">
-        {/* Professional Metrics */}
-        <div className="metrics-section">
-          <div className="metric-card" style={{ animationDelay: "0.1s" }}>
-            <div className="metric-header">
-              <span className="metric-icon">🖥️</span>
-              <span className="metric-label">Registered Nodes</span>
+      <div className="admin-content">
+        {/* Stats */}
+        <div className="metrics-grid">
+          <div className="metric-card">
+            <div className="metric-icon">🖥️</div>
+            <div className="metric-info">
+              <div className="metric-label">Registered Nodes</div>
+              <div className="metric-value">{stats.totalNodes}</div>
             </div>
-            <div className="metric-value">{stats.totalNodes}</div>
           </div>
-
-          <div className="metric-card accent-green" style={{ animationDelay: "0.2s" }}>
-            <div className="metric-header">
-              <span className="metric-icon">✅</span>
-              <span className="metric-label">Active Licenses</span>
+          <div className="metric-card green">
+            <div className="metric-icon">✅</div>
+            <div className="metric-info">
+              <div className="metric-label">Active Licenses</div>
+              <div className="metric-value">{stats.activeLicenses}</div>
             </div>
-            <div className="metric-value">{stats.activeLicenses}</div>
           </div>
-
-          <div className="metric-card accent-blue" style={{ animationDelay: "0.3s" }}>
-            <div className="metric-header">
-              <span className="metric-icon">📢</span>
-              <span className="metric-label">Active Promotions</span>
+          <div className="metric-card blue">
+            <div className="metric-icon">📢</div>
+            <div className="metric-info">
+              <div className="metric-label">Live Promotions</div>
+              <div className="metric-value">{stats.livePromotions}</div>
             </div>
-            <div className="metric-value">{stats.livePromotions}</div>
           </div>
         </div>
 
         <div className="main-grid">
-          {/* Operator Management */}
+          {/* Operator Management Panel */}
           <div className="panel operator-panel">
             <div className="panel-header">
               <h2>Operator Directory</h2>
-              <p className="panel-subtitle">Manage terminal access, screen permissions, and session limits</p>
+              <p className="panel-subtitle">Manage terminal access, screen permissions & session limits</p>
             </div>
 
             <div className="table-container">
@@ -200,7 +196,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="user-controls">
-                        <div className="control-box">
+                        <div className="control-group">
                           <label>Screens</label>
                           <input
                             type="number"
@@ -212,7 +208,7 @@ export default function AdminDashboard() {
                           />
                         </div>
 
-                        <div className="control-box">
+                        <div className="control-group">
                           <label>Max Sessions</label>
                           <input
                             type="number"
@@ -220,7 +216,7 @@ export default function AdminDashboard() {
                             max="50"
                             value={user.activeSessions || 0}
                             onChange={(e) => {
-                              setUsers(prev => prev.map(u => 
+                              setUsers(prev => prev.map(u =>
                                 u._id === user._id ? { ...u, activeSessions: Number(e.target.value) } : u
                               ));
                             }}
@@ -229,12 +225,12 @@ export default function AdminDashboard() {
                           />
                         </div>
 
-                        <div className={`access-status ${user.active ? 'active' : 'inactive'}`}>
-                          {user.active ? "Authorized" : "Access Revoked"}
+                        <div className={`access-badge ${user.active ? 'active' : 'inactive'}`}>
+                          {user.active ? "Authorized" : "Revoked"}
                         </div>
 
                         {user.role !== "admin" && (
-                          <div className="action-group">
+                          <div className="action-buttons">
                             <button
                               className={`btn ${user.active ? 'btn-warning' : 'btn-success'}`}
                               onClick={() => toggleAccess(user._id, user.active)}
@@ -256,8 +252,8 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Provision New Operator */}
-            <div className="provision-card">
+            {/* Create New User */}
+            <div className="provision-section">
               <h3>Provision New Terminal</h3>
               <div className="provision-form">
                 <input
@@ -265,14 +261,14 @@ export default function AdminDashboard() {
                   placeholder="Username / Node ID"
                   value={newUser.username}
                   onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                  className="form-input"
+                  className="input-field"
                 />
                 <input
                   type="password"
                   placeholder="Password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="form-input"
+                  className="input-field"
                 />
                 <button onClick={handleCreateUser} className="btn btn-primary">
                   Deploy Terminal
@@ -281,14 +277,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Media Management */}
+          {/* Media Broadcast Panel */}
           <div className="panel media-panel">
             <div className="panel-header">
               <h2>Media Broadcast Center</h2>
-              <p className="panel-subtitle">Manage promotional content across the network</p>
+              <p className="panel-subtitle">Manage promotional content across all terminals</p>
             </div>
 
-            <div className="upload-zone">
+            <div className="upload-section">
               <input
                 type="file"
                 id="ad-upload"
@@ -297,14 +293,14 @@ export default function AdminDashboard() {
                 hidden
               />
               <label htmlFor="ad-upload" className="upload-label">
-                {file ? `Selected: ${file.name}` : "Upload Promotion Banner (JPG / PNG)"}
+                {file ? `Selected: ${file.name}` : "Click to upload promotion banner (JPG/PNG)"}
               </label>
               <button
                 onClick={handleAdUpload}
                 disabled={!file || isUploading}
-                className="btn btn-primary upload-button"
+                className="btn btn-primary upload-btn"
               >
-                {isUploading ? "Broadcasting..." : "Broadcast to All Terminals"}
+                {isUploading ? "Broadcasting to Network..." : "Broadcast to All Terminals"}
               </button>
             </div>
 
@@ -313,9 +309,9 @@ export default function AdminDashboard() {
                 <div className="empty-media">No active promotions</div>
               ) : (
                 ads.map((ad, i) => (
-                  <div key={ad._id} className="media-item" style={{ animationDelay: `${i * 0.06}s` }}>
+                  <div key={ad._id} className="media-card" style={{ animationDelay: `${i * 0.06}s` }}>
                     <img src={`https://my-backend-1-c9a1.onrender.com${ad.imageUrl}`} alt="Promotion" />
-                    <button className="delete-media-btn" onClick={() => removeAd(ad._id)}>
+                    <button className="remove-btn" onClick={() => removeAd(ad._id)}>
                       Remove
                     </button>
                   </div>
@@ -326,68 +322,58 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <style jsx>{`
-        .admin-dashboard {
+      <style jsx global>{`
+        .admin-shell {
           background: #0f172a;
           color: #e2e8f0;
           min-height: 100vh;
           font-family: 'Inter', system-ui, sans-serif;
         }
 
-        .dashboard-container {
+        .admin-content {
           max-width: 1480px;
           margin: 0 auto;
           padding: 40px 32px;
         }
 
-        .metrics-section {
+        .metrics-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 24px;
           margin-bottom: 48px;
         }
 
         .metric-card {
           background: rgba(255,255,255,0.06);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(148, 163, 184, 0.2);
+          border: 1px solid rgba(148,163,184,0.2);
           border-radius: 16px;
           padding: 28px 32px;
           transition: all 0.3s ease;
-          animation: fadeInUp 0.6s ease forwards;
         }
 
         .metric-card:hover {
           transform: translateY(-4px);
-          border-color: rgba(129, 140, 248, 0.4);
+          border-color: #6366f1;
         }
 
-        .accent-green { border-top: 4px solid #22c55e; }
-        .accent-blue { border-top: 4px solid #3b82f6; }
-
-        .metric-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
+        .metric-card.green { border-top: 5px solid #22c55e; }
+        .metric-card.blue { border-top: 5px solid #3b82f6; }
 
         .metric-icon {
-          font-size: 28px;
+          font-size: 2.2rem;
+          margin-bottom: 12px;
         }
 
         .metric-label {
-          font-size: 0.875rem;
-          font-weight: 600;
+          font-size: 0.9rem;
           color: #94a3b8;
-          letter-spacing: 0.5px;
+          font-weight: 600;
         }
 
         .metric-value {
-          font-size: 3.2rem;
+          font-size: 2.8rem;
           font-weight: 700;
-          color: white;
-          line-height: 1;
+          margin-top: 8px;
         }
 
         .main-grid {
@@ -398,46 +384,43 @@ export default function AdminDashboard() {
 
         .panel {
           background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(148, 163, 184, 0.15);
+          border: 1px solid rgba(148,163,184,0.15);
           border-radius: 20px;
           padding: 32px;
-          backdrop-filter: blur(10px);
+          backdrop-filter: blur(12px);
         }
 
         .panel-header h2 {
-          font-size: 1.5rem;
+          font-size: 1.6rem;
           font-weight: 700;
-          margin: 0 0 8px 0;
-          color: white;
+          margin-bottom: 6px;
         }
 
         .panel-subtitle {
           color: #94a3b8;
-          font-size: 0.95rem;
         }
 
         /* User Rows */
         .user-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 14px;
         }
 
         .user-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(255,255,255,0.03);
+          background: rgba(255,255,255,0.04);
           padding: 20px 24px;
           border-radius: 14px;
           border: 1px solid rgba(148,163,184,0.1);
-          transition: all 0.2s ease;
-          animation: fadeInUp 0.5s ease forwards;
+          transition: all 0.2s;
         }
 
         .user-row:hover {
-          background: rgba(255,255,255,0.06);
-          transform: translateX(6px);
+          background: rgba(255,255,255,0.08);
+          transform: translateX(4px);
         }
 
         .user-info {
@@ -452,69 +435,54 @@ export default function AdminDashboard() {
           border-radius: 50%;
         }
 
-        .status-dot.online {
-          background: #22c55e;
-          box-shadow: 0 0 12px #22c55e;
-        }
+        .status-dot.online { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+        .status-dot.offline { background: #64748b; }
 
-        .status-dot.offline {
-          background: #64748b;
-        }
-
-        .user-name {
-          font-weight: 600;
-          font-size: 1.1rem;
-        }
-
-        .user-role {
-          font-size: 0.8rem;
-          color: #94a3b8;
-        }
+        .user-name { font-weight: 600; font-size: 1.1rem; }
+        .user-role { font-size: 0.85rem; color: #94a3b8; }
 
         .user-controls {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 24px;
         }
 
-        .control-box {
+        .control-group {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
         }
 
-        .control-box label {
-          font-size: 0.7rem;
-          font-weight: 600;
+        .control-group label {
+          font-size: 0.75rem;
           color: #94a3b8;
-          text-transform: uppercase;
+          font-weight: 600;
         }
 
         .control-input {
-          width: 68px;
-          padding: 6px 8px;
+          width: 72px;
+          padding: 8px 10px;
           background: rgba(255,255,255,0.08);
           border: 1px solid rgba(148,163,184,0.3);
           border-radius: 8px;
           color: white;
           text-align: center;
-          font-weight: 600;
         }
 
-        .access-status {
-          padding: 6px 16px;
+        .access-badge {
+          padding: 8px 18px;
           border-radius: 9999px;
           font-size: 0.85rem;
           font-weight: 600;
         }
 
-        .access-status.active {
+        .access-badge.active {
           background: rgba(34, 197, 94, 0.15);
           color: #86efac;
         }
 
-        .access-status.inactive {
+        .access-badge.inactive {
           background: rgba(239, 68, 68, 0.15);
           color: #fca5a5;
         }
@@ -525,30 +493,25 @@ export default function AdminDashboard() {
           border-radius: 10px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s;
         }
 
-        .btn-primary {
-          background: linear-gradient(90deg, #6366f1, #818cf8);
-          color: white;
-        }
-
+        .btn-primary { background: #6366f1; color: white; }
         .btn-success { background: #22c55e; color: white; }
         .btn-warning { background: #eab308; color: #1e2937; }
         .btn-danger { background: #ef4444; color: white; }
 
         .btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
 
-        /* Provision Card */
-        .provision-card {
+        /* Provision Section */
+        .provision-section {
           margin-top: 32px;
           background: rgba(255,255,255,0.04);
           padding: 28px;
           border-radius: 16px;
-          border: 1px solid rgba(148,163,184,0.2);
         }
 
         .provision-form {
@@ -557,41 +520,35 @@ export default function AdminDashboard() {
           margin-top: 16px;
         }
 
-        .form-input {
+        .input-field {
           flex: 1;
           padding: 14px 18px;
-          background: rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.08);
           border: 1px solid rgba(148,163,184,0.3);
           border-radius: 10px;
           color: white;
         }
 
         /* Media Upload */
-        .upload-zone {
+        .upload-section {
           border: 2px dashed #475569;
           border-radius: 16px;
           padding: 48px 32px;
           text-align: center;
-          margin-bottom: 32px;
-          transition: all 0.3s ease;
-        }
-
-        .upload-zone:hover {
-          border-color: #818cf8;
+          margin: 24px 0;
         }
 
         .upload-label {
           display: block;
           margin-bottom: 20px;
           color: #cbd5e1;
-          font-weight: 500;
           cursor: pointer;
+          font-weight: 500;
         }
 
-        .upload-button {
+        .upload-btn {
           width: 100%;
           padding: 16px;
-          font-size: 1.05rem;
         }
 
         .media-grid {
@@ -600,21 +557,20 @@ export default function AdminDashboard() {
           gap: 20px;
         }
 
-        .media-item {
+        .media-card {
           position: relative;
           border-radius: 14px;
           overflow: hidden;
           border: 1px solid rgba(148,163,184,0.2);
-          animation: fadeInUp 0.6s ease forwards;
         }
 
-        .media-item img {
+        .media-card img {
           width: 100%;
           height: 160px;
           object-fit: cover;
         }
 
-        .delete-media-btn {
+        .remove-btn {
           position: absolute;
           top: 12px;
           right: 12px;
@@ -623,7 +579,6 @@ export default function AdminDashboard() {
           border: none;
           padding: 6px 14px;
           border-radius: 8px;
-          font-size: 0.8rem;
           cursor: pointer;
         }
 
@@ -631,24 +586,23 @@ export default function AdminDashboard() {
           text-align: center;
           padding: 80px 20px;
           color: #94a3b8;
-          font-style: italic;
         }
 
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Responsive */
         @media (max-width: 1100px) {
           .main-grid {
             grid-template-columns: 1fr;
           }
+        }
+
+        @media (max-width: 768px) {
+          .admin-content { padding: 20px 16px; }
+          .user-controls { flex-direction: column; align-items: flex-start; gap: 16px; }
         }
       `}</style>
     </div>
