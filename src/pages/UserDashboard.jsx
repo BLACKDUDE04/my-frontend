@@ -312,7 +312,7 @@ export default function UserDashboard() {
     if (!window.confirm("Are you sure you want to log out?")) return;
     try { await api.post("/auth/logout"); } catch (e) { console.log(e); }
     localStorage.removeItem("token");
-    window.location.href = "/";
+    window.location.replace("/");
   };
 
   const handleAddExpense = async () => {
